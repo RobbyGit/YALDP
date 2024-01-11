@@ -93,12 +93,14 @@ class LidarView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         // Get the center coordinates of the view
         val centerX = width / 2f
         val centerY = height / 2f
-        val canvasWidth = canvas.width
-        val canvasHeight = canvas.height
+        val canvasWidth = width
+        val canvasHeight = height
 
         // Draw the circle
         val circleRadius = centerX.coerceAtMost(centerY) * 1f
         canvas.drawCircle(centerX, centerY, circleRadius, circle)
+
+        Log.w(TAG, "Data: $data")
 
 //        if (inData.isNotEmpty()) {
 //            //Log.e(TAG, "RawData: " + inData)
@@ -157,7 +159,7 @@ class LidarView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event?.action == MotionEvent.ACTION_DOWN || event?.action == MotionEvent.ACTION_MOVE) {
             sliderValue = (event?.x ?: 0f) / width * 20f
-            Log.w(TAG,"Slide: " + sliderValue)
+            Log.w(TAG, "Slide: $sliderValue")
             invalidate()
             return true
         }

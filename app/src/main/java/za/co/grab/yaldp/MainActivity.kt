@@ -63,11 +63,7 @@ class MainActivity : AppCompatActivity() {
                         this,
                         0,
                         Intent(ACTION_USB_PERMISSION),
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-                        } else {
-                            PendingIntent.FLAG_UPDATE_CURRENT
-                        }
+                        PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
                     )
                     usbManager.requestPermission(usbDevice, permissionIntent)
                 }
@@ -97,7 +93,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun scanNow() {
+    private fun scanNow() {
         Log.d(TAG, "Start scanning")
         val rpLidar = RPLidarA2Api(usbManager as UsbManager?)
 
