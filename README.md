@@ -16,6 +16,6 @@ Even though the aar is for the long dead Android IOT, I have tried to utilise th
 Im sure there are so many things that can be done better and I will work through them.
 
 TODO:
-    1. Turn on and off the motor
-    2. Add a view that can zoom and move
+    1. Turn on and off the motor\
+    2. Add a view that can zoom and move\
     3. Check data integrate better
