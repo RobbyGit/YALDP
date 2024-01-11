@@ -15,7 +15,9 @@ I have used https://github.com/carlemil/RPLidarA2AndroidThingsAPI and thank him 
 Even though the aar is for the long dead Android IOT, I have tried to utilise the aar as much as I can.
 Im sure there are so many things that can be done better and I will work through them.
 
-TODO:
-    1. Turn on and off the motor\
-    2. Add a view that can zoom and move\
-    3. Check data integrate better
+Things to do:\
+--------------
+
+1. Turn on and off the motor\
+2. Add a view that can zoom and move\
+3. Check data integrate better
