@@ -4,6 +4,10 @@
 Yet Another LiDar Project
 -------------------------
 
+I wanted a way to use my RPLIDAR A1M8 Lidar on my Android phone. After searching and trying Arduino's, I eventually decided to create an APP.
+
+Not sure if this will work with any other RPLIDAR as I dont have any yet.
+
 This is the start of creating this project. I have used https://github.com/carlemil/RPLidarA2AndroidThingsAPI and thank him for the 
 development he did. If you use this , please give him a star.
 

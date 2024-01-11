@@ -22,12 +22,10 @@ class MainActivity : AppCompatActivity() {
     private val latch = CountDownLatch(10)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.w(TAG, "Starting YALD")
+        Log.w(TAG, "Starting YALDP")
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-
 
         usbManager = getSystemService(USB_SERVICE) as UsbManager
         val vendorId = 4292
