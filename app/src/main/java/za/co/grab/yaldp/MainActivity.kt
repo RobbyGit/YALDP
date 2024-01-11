@@ -7,25 +7,36 @@ import android.hardware.usb.UsbManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.felhr.usbserial.UsbSerialDevice
 import com.felhr.usbserial.UsbSerialInterface
 import com.jayway.rplidarapi.RPLidarA2Api
-import com.jayway.rplidarapi.ResponseHandler
 import com.jayway.rplidarapi.ScanData
-import java.util.concurrent.CountDownLatch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var usbManager: UsbManager
     private var TAG: String = "YALDP"
     private var usbSerialDevice: UsbSerialDevice? = null
-    private val latch = CountDownLatch(10)
+    private lateinit var lidarView: LidarView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.w(TAG, "Starting YALDP")
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        lidarView = findViewById<LidarView>(R.id.lidarView)
+
+        // Remove the RadarView from its previous parent if it has one
+        val parent = lidarView.parent as? ViewGroup
+        parent?.removeView(lidarView)
+
+
+        // Add the RadarView to the layout
+        val layout = findViewById<LinearLayout>(R.id.layout)
+        layout.addView(lidarView)
 
         usbManager = getSystemService(USB_SERVICE) as UsbManager
         val vendorId = 4292
@@ -79,9 +90,6 @@ class MainActivity : AppCompatActivity() {
                 usbSerial.setStopBits(UsbSerialInterface.STOP_BITS_1)
                 usbSerial.setParity(UsbSerialInterface.PARITY_NONE)
                 usbSerial.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF)
-
-                //rpLidar.startMotor()
-                //usbSerial.read(mCallback)
                 scanNow()
             } else {
                 Log.e(TAG, "Error opening USB serial port.")
@@ -95,7 +103,8 @@ class MainActivity : AppCompatActivity() {
 
         fun handleResponse(scanDataList: List<ScanData>) {
             scanDataList.forEach {
-                Log.d(TAG, "SCAN: ${it.distance}, ${it.angle}")
+                //Log.d(TAG, "SCAN: ${it.distance}, ${it.angle}")
+                lidarView.setData(it.distance.toString() + "," + it.angle.toString())
             }
         }
         rpLidar.startScan({ scanDataList: List<ScanData> ->
