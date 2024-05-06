@@ -9,8 +9,8 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.felhr.usbserial.UsbSerialDevice
 import com.felhr.usbserial.UsbSerialInterface
+import com.jayway.rplidarapi.RPLidarA2Api
 import com.jayway.rplidarapi.ScanData
-import java.nio.charset.Charset
 
 
 class MainActivity : AppCompatActivity() {
@@ -37,12 +37,8 @@ class MainActivity : AppCompatActivity() {
         //layout.addView(lidarView)
 
         usbManager = getSystemService(USB_SERVICE) as UsbManager
-        //val vendorId = 4292
-        //val productId = 60000
-
-        val vendorId = 12346
-        val productId = 4097
-
+        val vendorId = 4292
+        val productId = 60000
 
         val usbDevice: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
         usbDevice?.let {
@@ -58,7 +54,7 @@ class MainActivity : AppCompatActivity() {
             if (usbDevice.vendorId == vendorId && usbDevice.productId == productId) {
                 if (usbManager.hasPermission(usbDevice)) {
                     openSerialPort(usbDevice)
-                    Log.e(TAG, "ok permissions")
+                    Log.e(TAG, "Opening USB serial port")
                 } else {
                     Log.e(TAG, "No permissions")
                     val permissionIntent = PendingIntent.getBroadcast(
@@ -78,7 +74,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openSerialPort(usbDevice: UsbDevice) {
-        usbSerialDevice = UsbSerialDevice.createUsbSerialDevice(usbDevice, usbManager.openDevice(usbDevice))
+        usbSerialDevice =
+            UsbSerialDevice.createUsbSerialDevice(usbDevice, usbManager.openDevice(usbDevice))
         usbSerialDevice?.let { usbSerial ->
             if (usbSerial.open()) {
                 Log.e(TAG, "Setting USB serial port values")
@@ -87,50 +84,53 @@ class MainActivity : AppCompatActivity() {
                 usbSerial.setStopBits(UsbSerialInterface.STOP_BITS_1)
                 usbSerial.setParity(UsbSerialInterface.PARITY_NONE)
                 usbSerial.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF)
-                usbSerial.setDTR(false)
-                Log.e(TAG, "USB set and ready")
-                usbSerial.read(object : UsbSerialInterface.UsbReadCallback {
-                    private var buffer: String = ""
-                    val distanceArray = Array<Int?>(360) { 0 }
-
-                    override fun onReceivedData(data: ByteArray?) {
-                        data?.let {
-                            val receivedData = String(it, Charset.defaultCharset())
-                            buffer += receivedData // Append received data to the buffer
-                            val lines = buffer.split("|")
-
-                            // Iterate over each line in the buffer
-                            for (i in 0 until lines.size - 1) {
-                                val line = lines[i].trim() // Trim the line to remove leading/trailing whitespace
-                                //Log.d(TAG, "Received data line: $line")
-                                //Distance|Angle
-                                try {
-                                    val (distance, angle) = line.split(",")
-                                    val distanceInt = distance.toInt()
-                                    val angleInt = angle.toInt()
-                                    //Log.w(TAG, "Distance: $distanceInt, Angle: $angleInt")
-                                    distanceArray[angleInt % 360] = distanceInt
-                                } catch (e: NumberFormatException) {
-                                    // This is because of the Arduino startup
-                                }
-                            }
-                            buffer = lines.last()
-                        }
-                        val distanceArrayString = distanceArray.joinToString(", ") { it?.toString() ?: "null" }
-                        //Log.w(TAG,"Distance Array: [$distanceArrayString]")
-                        lidarView.setData(distanceArrayString)
-                    }
-                })
+                scanNow()
             } else {
                 Log.e(TAG, "Error opening USB serial port.")
             }
         }
     }
 
+    private fun scanNow() {
+        Log.d(TAG, "Start scanning")
+        val rpLidar = RPLidarA2Api(usbManager as UsbManager?)
+        var lidarData = Array(360) { 0 }.toMutableList().toTypedArray()
+
+        fun handleResponse(scanDataList: List<ScanData>) {
+            scanDataList.forEach { scanData ->
+                //if (scanData.startBitSet) {
+                    val angle = scanData.angle.toInt()
+                    if (angle in 0 until 360) {
+                        lidarData[angle] = scanData.distance.toInt()
+                       Log.d(TAG, "SCAN: ${scanData.distance}, ${scanData.angle}, ${scanData.startBitSet}, ${scanData.quality}")
+                    }
+                //}
+            }
+
+           // Log.d(TAG, "Lidar Data Array: ${lidarData.contentToString()}")
+            lidarView.setData(lidarData.contentToString())
+        }
+
+
+//        fun handleResponse(scanDataList: List<ScanData>) {
+//            scanDataList.forEach {
+//                if(it.startBitSet) {
+//                    if(it.angle <= 360.0) {
+//                        Log.d(TAG, "SCAN: ${it.distance}, ${it.angle}, ${it.startBitSet}, ${it.quality}")
+//                    }
+//                }
+//               // lidarView.setData(it.distance.toString() + "," + it.angle.toString())
+//            }
+//        }
+
+        rpLidar.startScan({ scanDataList: List<ScanData> ->
+            handleResponse(scanDataList)
+        } as ((Any) -> Unit)?, 200)
+    }
+
     override fun onDestroy() {
-        Log.w(TAG, "DESTROYED")
-        usbSerialDevice?.close()
         super.onDestroy()
+        usbSerialDevice?.close()
     }
 
     companion object {

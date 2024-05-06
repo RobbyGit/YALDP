@@ -10,10 +10,11 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import java.lang.Math.*
-import kotlin.collections.ArrayList
+import java.lang.Integer.min
 import kotlin.math.cos
+import kotlin.math.roundToInt
 import kotlin.math.sin
+
 
 class LidarView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
     private var angle = 0f
@@ -28,7 +29,9 @@ class LidarView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
     private var socketLength: String = "0.0"
     private var socketBit: String = "0.0"
     private var socketQuality: String = "0.0"
-    private var status: String = "Disconnected"
+    private var status: String = ""
+    private val arraySize = 360
+    private val array = IntArray(arraySize)
 
     private val circleLight = Paint().apply {
         color = Color.MAGENTA
@@ -79,10 +82,7 @@ class LidarView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
     private val handler = Handler(Looper.getMainLooper())
     private val runnable = object : Runnable {
         override fun run() {
-            angle = 20f // increment the angle by 6 degrees (1 second)
-            radius = width.coerceAtMost(height / 400)
-                .toFloat() // calculate the radius based on the size of the view
-            //Log.w(TAG, "Radius: $radius")
+            radius = width.coerceAtMost(height / 1000).toFloat() // calculate the radius based on the size of the view
             invalidate() // redraw the view
             handler.postDelayed(this, 1) // schedule the runnable to run after 1 second
         }
@@ -90,42 +90,70 @@ class LidarView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+
         // Get the center coordinates of the view
         val centerX = width / 2f
         val centerY = height / 2f
-        val canvasWidth = width
-        val canvasHeight = height
+        val canvasWidth = canvas.width
+        val canvasHeight = canvas.height
 
         // Draw the circle
         val circleRadius = centerX.coerceAtMost(centerY) * 1f
         canvas.drawCircle(centerX, centerY, circleRadius, circle)
 
-        Log.w(TAG, "Data: $data")
+        if (data.isNotEmpty()) {
+            //Log.w(TAG, "Data: $data")
 
-//        if (inData.isNotEmpty()) {
-//            //Log.e(TAG, "RawData: " + inData)
-//            val myArray = inData.replace("[", "").replace("]", "").split(",").toTypedArray()
+                //Log.e(TAG, "RawData: " + inData)
+
+                val myArray = data.replace("[", "").replace("]", "").split(",").toTypedArray()
+
+                for (value in myArray) {
+
+                    //Get max and min Values
+                    if (value.trim().toFloat() > maxDistance) {
+                        maxDistance = value.trim().toFloat()
+                    }
+
+                    minDistance = value.trim().toFloat()
+
+                    Log.w(TAG, "Data: " + count + " - " + value.trim())
+                    val lineX = centerX + (radius * -(value.trim().toFloat() / sliderValue)) * cos(Math.toRadians(count.toDouble())).toFloat()
+                    val lineY = (centerY) + (radius * -(value.trim().toFloat() / sliderValue)) * sin(Math.toRadians(count.toDouble())).toFloat()
+
+                    // Draw the line that fills the circle
+                    canvas.drawLine(centerX, centerY, lineX, lineY, lineColor)
+                    canvas.drawPoint(lineX, lineY, pointColour)
+                    count++
+                }
+                count = 0
+
+//            val data = data
+//                .removeSurrounding("[", "]")
+//                .split(",")
+//                .map { it.trim().toDouble() }
+//                .toDoubleArray()
 //
-//            for (value in myArray) {
+//            var maxDistance = 0
+//            val width = canvas.width
+//            val height = canvas.height
 //
-//                //Get max and min Values
-//                if (value.trim().toFloat() > maxDistance) {
-//                    maxDistance = value.trim().toFloat()
+//            for (angle in 0 until 360) {
+//                val distance = data[angle].toInt()
+//                if (distance > 0) { // Ignore initially ungathered data points
+//                    maxDistance = maxOf(min(5000, distance), maxDistance)
+//                    val radians = angle * Math.PI / 180.0
+//                    val x = distance * cos(radians)
+//                    val y = distance * sin(radians)
+//                    val pointX = (width / 2 + (x / maxDistance * (width / 2 - 20))).toInt()
+//                    val pointY = (height / 2 + (y / maxDistance * (height / 2 - 20))).toInt()
+//
+//                    canvas.drawPoint(pointX.toFloat(), pointY.toFloat(), pointColour)
 //                }
-//
-//                minDistance = value.trim().toFloat()
-//
-//                //Log.w(TAG, "Data: " + count + " - " + value.trim())
-//                val lineX = centerX + (radius * -(value.trim().toFloat() / sliderValue)) * cos(Math.toRadians(count.toDouble())).toFloat()
-//                val lineY = (centerY) + (radius * -(value.trim().toFloat() / sliderValue)) * sin(Math.toRadians(count.toDouble())).toFloat()
-//
-//                // Draw the line that fills the circle
-//                canvas.drawLine(centerX, centerY, lineX, lineY, lineColor)
-//                canvas.drawPoint(lineX, lineY, pointColour)
-//                count++
 //            }
-//            count = 0
-//        }
+
+
+        }
 
         //Cross hairs on top of drawing
         canvas.drawLine(centerX.toFloat(), 460f, centerX.toFloat(), canvasHeight.toFloat() - 460f, circle)
@@ -149,17 +177,13 @@ class LidarView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         canvas.drawCircle(centerX, centerY, circleRadiusd, circleLight)
         val circleRadiuse = centerX.coerceAtMost(centerY) * .0f
         canvas.drawCircle(centerX, centerY, circleRadiuse, circleLight)
-
-//        val sliderX = (sliderValue / 20f) * width
-//        canvas.drawLine(10f, height - 100f, width.toFloat(), height -100f, sliderPaint)
-//        canvas.drawCircle(sliderX, height - 100f, 30f, sliderPaint)
-
     }
+
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event?.action == MotionEvent.ACTION_DOWN || event?.action == MotionEvent.ACTION_MOVE) {
             sliderValue = (event?.x ?: 0f) / width * 20f
-            Log.w(TAG, "Slide: $sliderValue")
+            //Log.w(TAG, "Slide: $sliderValue")
             invalidate()
             return true
         }
@@ -176,3 +200,4 @@ class LidarView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         handler.removeCallbacks(runnable) // stop the runnable when the view is detached from the window
     }
 }
+
