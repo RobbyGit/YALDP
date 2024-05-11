@@ -1,7 +1,7 @@
 # YALDP
 
 
-Yet Another LiDar Project
+Yet Another Lidar Project
 -------------------------
 
 ![Alt text](https://raw.githubusercontent.com/RobbyGit/YALDP/main/images/PXL_20240511_075508858.MP.jpg)
