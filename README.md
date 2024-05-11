@@ -28,6 +28,7 @@ Here is a link to help get started with that https://stackoverflow.com/questions
 Here is the Link to to the Arduino code and how to change the rplidar library.
 https://github.com/RobbyGit/Esprpilidar
 
+
 Im sure there are so many things that can be done better and I will work through them.
 
 Things to do:
