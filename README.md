@@ -22,10 +22,11 @@ This is the unit I used https://www.makerfabs.com/esp32s3-4g-lte.html but I am s
 Its not an easy board to understand but after playing around for some time , i got the hang of how to use it.
 This is my now go to board for all my projects.
 
-I find using adb remotely helped during the development and i suggest you use this or you will get frustrated.
+I find using adb remotely helped during the development and I suggest you use this or you will get frustrated.
 Here is a link to help get started with that https://stackoverflow.com/questions/2604727/how-can-i-connect-to-android-with-adb-over-tcp
 
 Here is the Link to to the Arduino code and how to change the rplidar library.
+https://github.com/RobbyGit/Esprpilidar
 
 Im sure there are so many things that can be done better and I will work through them.
 
