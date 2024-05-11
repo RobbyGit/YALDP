@@ -4,7 +4,8 @@
 Yet Another LiDar Project
 -------------------------
 
-https://raw.githubusercontent.com/RobbyGit/YALDP/main/images/PXL_20240511_075508858.MP.jpg
+![Alt text](https://raw.githubusercontent.com/RobbyGit/YALDP/main/images/PXL_20240511_075508858.MP.jpg)
+
 
 I wanted a way to use my RPLIDAR A1M8 Lidar on my Android phone using OTG.
 You need an Android phone that supports OTG else this would not work. I am sure you could use the WIFI for the ESP32
